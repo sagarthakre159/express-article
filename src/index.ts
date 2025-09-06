@@ -40,7 +40,7 @@ app.get('/about', function (req, res) {
 app.get('/api-data', (req, res) => {
   res.json({
     message: 'Here is some sample API data',
-    items: ['apple', 'banana', 'cherry'],
+    items: ['apple', 'banana', 'cherryy'],
   })
 })
 
