@@ -1,11 +1,31 @@
 import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import mongoose from 'mongoose'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+
+mongoose.connect("mongodb+srv://sagarthakre159:Sagar%40123@cr7.vsudyjk.mongodb.net/nirma", )
+
+const userSchema = new mongoose.Schema({
+  name: String,
+  age: Number,
+});
+
+const User = mongoose.model("User", userSchema);
+
+// 3. Create a GET route
 const app = express()
+app.get("/users", async (req, res) => {
+  try {
+    const users = await User.find(); // fetch all users
+    res.json(users);
+  } catch (err) {
+    res.status(500).send("Error fetching users");
+  }
+});
 
 // Home route - HTML
 app.get('/', (req, res) => {
