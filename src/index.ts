@@ -1,7 +1,10 @@
-import express from 'express'
+import express , { Request, Response } from 'express'
 import path from 'path'
+import { s3Upload } from './upload.js'
+import multer from 'multer'
 import { fileURLToPath } from 'url'
 import mongoose from 'mongoose'
+import 'dotenv/config'; 
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -10,7 +13,7 @@ const __dirname = path.dirname(__filename)
 mongoose.connect("mongodb+srv://sagarthakre159:Sagar%40123@cr7.vsudyjk.mongodb.net/nirma", )
 
 const userSchema = new mongoose.Schema({
-  name: String,
+  name: String,  
   age: Number,
 });
 
@@ -69,4 +72,56 @@ app.get('/healthz', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
+
+interface UploadRequest extends Request {
+    file: Express.Multer.File & { location: string };
+}
+
+// Define your Mongoose Schema to store the URL
+const productSchema = new mongoose.Schema({
+  productName: String,
+  imageUrl: String, // Store the reference here!
+});
+
+const Product = mongoose.model('Product', productSchema);
+
+app.post('/products', s3Upload.single('productImage'), async (req: UploadRequest, res: Response) => {
+  try {
+    // 1. Image has been uploaded to S3 by multer-s3-v3
+
+    // 2. The URL/Location is returned in req.file.location
+    const imageLocation = req.file.location; 
+    const productName = req.body.productName; // Assuming you have body-parser/express.json() middleware for other fields
+
+    // 3. Store the reference in MongoDB
+    const newProduct = new Product({
+      productName: productName,
+      imageUrl: imageLocation, // <-- Storing the S3 URL
+    });
+
+    await newProduct.save();
+
+    res.status(201).json({ 
+      message: 'Product and image uploaded successfully!', 
+      url: imageLocation 
+    });
+  } catch (error) {
+    console.error('S3 Upload or DB Save Error:', error);
+    res.status(500).send('Failed to upload product or image.');
+  }
+});
+
+
+const PORT = process.env.PORT || 3000
+
+// Start the server only if the file is run directly (not imported elsewhere)
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Server listening on port ${PORT}`)
+        console.log(`Access it at http://localhost:${PORT}`)
+    })
+}
+
+
+// NOTE: Keep the export default app for Vercel or other environments
 export default app
