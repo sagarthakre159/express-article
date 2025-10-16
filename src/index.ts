@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 
-mongoose.connect(process.env.MONGO_URI, )
+mongoose.connect("mongodb+srv://sagarthakre159:Sagar%40123@cr7.vsudyjk.mongodb.net/nirma", )
 
 const userSchema = new mongoose.Schema({
   name: String,  
